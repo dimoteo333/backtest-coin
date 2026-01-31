@@ -3,6 +3,8 @@
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
+import { MONEY_HELP } from '@/lib/help-content';
 import { useMoneyManagementStore } from '@/stores';
 
 export function LeverageSlider() {
@@ -11,9 +13,16 @@ export function LeverageSlider() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label htmlFor="leverage-enabled" className="text-sm font-medium">
-          Leverage
-        </Label>
+        <div className="flex items-center gap-1.5">
+          <Label htmlFor="leverage-enabled" className="text-sm font-medium">
+            레버리지
+          </Label>
+          <HelpTooltip
+            title={MONEY_HELP.leverage.title}
+            content={MONEY_HELP.leverage.content}
+            iconSize={13}
+          />
+        </div>
         <Switch
           id="leverage-enabled"
           checked={moneyManagement.leverageEnabled}
@@ -24,7 +33,7 @@ export function LeverageSlider() {
       {moneyManagement.leverageEnabled && (
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Multiplier</span>
+            <span className="text-muted-foreground">배율</span>
             <span className="font-medium">{moneyManagement.leverage}x</span>
           </div>
           <Slider

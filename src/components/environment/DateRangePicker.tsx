@@ -2,6 +2,8 @@
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
+import { ENVIRONMENT_HELP } from '@/lib/help-content';
 import { useEnvironmentStore } from '@/stores';
 
 export function DateRangePicker() {
@@ -17,11 +19,18 @@ export function DateRangePicker() {
 
   return (
     <div className="space-y-2">
-      <Label>Date Range</Label>
+      <div className="flex items-center gap-1.5">
+        <Label>기간 설정</Label>
+        <HelpTooltip
+          title={ENVIRONMENT_HELP.dateRange.title}
+          content={ENVIRONMENT_HELP.dateRange.content}
+          iconSize={13}
+        />
+      </div>
       <div className="flex gap-2">
         <div className="flex-1">
           <Label htmlFor="start-date" className="sr-only">
-            Start Date
+            시작일
           </Label>
           <Input
             id="start-date"
@@ -31,10 +40,10 @@ export function DateRangePicker() {
             max={environment.dateRange.endDate}
           />
         </div>
-        <span className="flex items-center text-muted-foreground">to</span>
+        <span className="flex items-center text-muted-foreground">~</span>
         <div className="flex-1">
           <Label htmlFor="end-date" className="sr-only">
-            End Date
+            종료일
           </Label>
           <Input
             id="end-date"

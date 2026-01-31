@@ -3,6 +3,8 @@
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
+import { STRATEGY_HELP } from '@/lib/help-content';
 import { useStrategyStore } from '@/stores';
 
 export function TakeProfitInput() {
@@ -11,9 +13,16 @@ export function TakeProfitInput() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label htmlFor="take-profit-enabled" className="text-sm font-medium">
-          Take Profit
-        </Label>
+        <div className="flex items-center gap-1.5">
+          <Label htmlFor="take-profit-enabled" className="text-sm font-medium">
+            익절매
+          </Label>
+          <HelpTooltip
+            title={STRATEGY_HELP.takeProfit.title}
+            content={STRATEGY_HELP.takeProfit.content}
+            iconSize={13}
+          />
+        </div>
         <Switch
           id="take-profit-enabled"
           checked={strategy.takeProfit.enabled}
@@ -24,7 +33,7 @@ export function TakeProfitInput() {
       {strategy.takeProfit.enabled && (
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Profit Target</span>
+            <span className="text-muted-foreground">목표 수익</span>
             <span className="font-medium text-green-600 dark:text-green-400">
               +{strategy.takeProfit.percentage}%
             </span>

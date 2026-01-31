@@ -55,7 +55,7 @@ export type IndicatorType =
   | 'BB_LOWER'
   | 'PRICE';
 
-export type ComparisonOperator = '<' | '>' | '==' | '<=' | '>=';
+export type ComparisonOperator = '<' | '>' | '==' | '<=' | '>=' | 'crosses_above' | 'crosses_below';
 
 // Available indicators with their default periods
 export const AVAILABLE_INDICATORS: { type: IndicatorType; label: string; defaultPeriod: number }[] = [

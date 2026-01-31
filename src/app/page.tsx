@@ -51,10 +51,10 @@ function BacktestButton() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             />
           </svg>
-          Running...
+          실행 중...
         </>
       ) : (
-        'Run Backtest'
+        '백테스트 실행'
       )}
     </Button>
   );
@@ -90,13 +90,13 @@ function DataLoader() {
     <div className="space-y-2">
       <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 text-sm">
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">Data:</span>
+          <span className="text-muted-foreground">데이터:</span>
           {candlesLoading ? (
             <span className="text-muted-foreground">
-              Loading... {progress > 0 && `${progress}%`}
+              로딩 중... {progress > 0 && `${progress}%`}
             </span>
           ) : (
-            <span className="font-medium">{candles.length.toLocaleString()} candles</span>
+            <span className="font-medium">{candles.length.toLocaleString()}개 캔들</span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -108,8 +108,8 @@ function DataLoader() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="mock">Mock</SelectItem>
-              <SelectItem value="binance">Binance</SelectItem>
+              <SelectItem value="mock">가상 데이터</SelectItem>
+              <SelectItem value="binance">바이낸스</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -118,14 +118,14 @@ function DataLoader() {
             onClick={handleLoad}
             disabled={candlesLoading}
           >
-            {candlesLoading ? 'Loading...' : 'Reload'}
+            {candlesLoading ? '로딩 중...' : '새로고침'}
           </Button>
         </div>
       </div>
       {error && (
         <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
           <Badge variant="outline" className="text-xs">
-            Fallback to Mock
+            가상 데이터로 대체
           </Badge>
           <span>{error}</span>
         </div>

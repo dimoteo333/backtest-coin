@@ -17,7 +17,7 @@ export function ResultsDashboard() {
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-          <p className="text-sm text-muted-foreground">Running backtest...</p>
+          <p className="text-sm text-muted-foreground">백테스트 실행 중...</p>
         </div>
       </div>
     );
@@ -27,7 +27,7 @@ export function ResultsDashboard() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-destructive font-medium">Error</p>
+          <p className="text-destructive font-medium">오류</p>
           <p className="text-sm text-muted-foreground mt-1">{error}</p>
         </div>
       </div>
@@ -38,9 +38,9 @@ export function ResultsDashboard() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-lg font-medium">No Results Yet</p>
+          <p className="text-lg font-medium">아직 결과가 없습니다</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Configure your strategy and run a backtest to see results.
+            전략을 설정하고 백테스트를 실행하면 결과를 볼 수 있어요.
           </p>
         </div>
       </div>
@@ -50,9 +50,9 @@ export function ResultsDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Backtest Results</h2>
+        <h2 className="text-lg font-semibold">백테스트 결과</h2>
         <Badge variant="outline" className="text-xs">
-          Executed in {result.executionTimeMs.toFixed(0)}ms
+          실행 시간 {result.executionTimeMs.toFixed(0)}ms
         </Badge>
       </div>
 
@@ -60,15 +60,15 @@ export function ResultsDashboard() {
 
       <Tabs defaultValue="charts" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="charts">Charts</TabsTrigger>
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="trades">Trades</TabsTrigger>
+          <TabsTrigger value="charts">차트</TabsTrigger>
+          <TabsTrigger value="details">상세 정보</TabsTrigger>
+          <TabsTrigger value="trades">거래 내역</TabsTrigger>
         </TabsList>
 
         <TabsContent value="charts" className="mt-4 space-y-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Price Chart</CardTitle>
+              <CardTitle className="text-sm">가격 차트</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <PriceChart
@@ -82,7 +82,7 @@ export function ResultsDashboard() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Equity Curve</CardTitle>
+                <CardTitle className="text-sm">자산 곡선</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <EquityCurveChart
@@ -95,7 +95,7 @@ export function ResultsDashboard() {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Drawdown</CardTitle>
+                <CardTitle className="text-sm">낙폭 차트</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <DrawdownChart

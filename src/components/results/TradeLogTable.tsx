@@ -15,19 +15,19 @@ function formatDuration(ms: number): string {
   const days = Math.floor(hours / 24);
 
   if (days > 0) {
-    return `${days}d ${hours % 24}h`;
+    return `${days}일 ${hours % 24}시간`;
   }
   if (hours > 0) {
-    return `${hours}h ${minutes % 60}m`;
+    return `${hours}시간 ${minutes % 60}분`;
   }
   if (minutes > 0) {
-    return `${minutes}m`;
+    return `${minutes}분`;
   }
-  return `${seconds}s`;
+  return `${seconds}초`;
 }
 
 function formatDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleString('en-US', {
+  return new Date(timestamp).toLocaleString('ko-KR', {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -35,16 +35,28 @@ function formatDate(timestamp: number): string {
   });
 }
 
+// 청산 사유 한국어 변환
+function getExitReasonLabel(reason: string): string {
+  const labels: Record<string, string> = {
+    'exit_condition': '조건 충족',
+    'stop_loss': '손절매',
+    'take_profit': '익절매',
+    'end_of_data': '데이터 종료',
+    'manual': '수동 청산',
+  };
+  return labels[reason] || reason.replace('_', ' ');
+}
+
 export function TradeLogTable({ trades }: TradeLogTableProps) {
   if (trades.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Trade Log</CardTitle>
+          <CardTitle className="text-sm">거래 내역</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground text-center py-8">
-            No trades executed during this period.
+            이 기간에 실행된 거래가 없습니다.
           </p>
         </CardContent>
       </Card>
@@ -54,7 +66,7 @@ export function TradeLogTable({ trades }: TradeLogTableProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">Trade Log ({trades.length} trades)</CardTitle>
+        <CardTitle className="text-sm">거래 내역 ({trades.length}건)</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
@@ -62,14 +74,14 @@ export function TradeLogTable({ trades }: TradeLogTableProps) {
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="text-left py-2 px-3 font-medium">#</th>
-                <th className="text-left py-2 px-3 font-medium">Entry</th>
-                <th className="text-left py-2 px-3 font-medium">Exit</th>
-                <th className="text-right py-2 px-3 font-medium">Entry Price</th>
-                <th className="text-right py-2 px-3 font-medium">Exit Price</th>
-                <th className="text-right py-2 px-3 font-medium">P/L</th>
-                <th className="text-right py-2 px-3 font-medium">P/L %</th>
-                <th className="text-left py-2 px-3 font-medium">Duration</th>
-                <th className="text-left py-2 px-3 font-medium">Reason</th>
+                <th className="text-left py-2 px-3 font-medium">진입 시간</th>
+                <th className="text-left py-2 px-3 font-medium">청산 시간</th>
+                <th className="text-right py-2 px-3 font-medium">진입가</th>
+                <th className="text-right py-2 px-3 font-medium">청산가</th>
+                <th className="text-right py-2 px-3 font-medium">손익</th>
+                <th className="text-right py-2 px-3 font-medium">손익 %</th>
+                <th className="text-left py-2 px-3 font-medium">보유 기간</th>
+                <th className="text-left py-2 px-3 font-medium">청산 사유</th>
               </tr>
             </thead>
             <tbody>
@@ -107,8 +119,8 @@ export function TradeLogTable({ trades }: TradeLogTableProps) {
                     {trade.profitLossPercent.toFixed(2)}%
                   </td>
                   <td className="py-2 px-3 text-xs">{formatDuration(trade.duration)}</td>
-                  <td className="py-2 px-3 text-xs capitalize">
-                    {trade.exitReason.replace('_', ' ')}
+                  <td className="py-2 px-3 text-xs">
+                    {getExitReasonLabel(trade.exitReason)}
                   </td>
                 </tr>
               ))}

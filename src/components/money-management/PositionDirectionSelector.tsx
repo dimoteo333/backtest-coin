@@ -8,6 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
+import { MONEY_HELP } from '@/lib/help-content';
 import { useMoneyManagementStore } from '@/stores';
 
 export function PositionDirectionSelector() {
@@ -15,7 +17,14 @@ export function PositionDirectionSelector() {
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="position-direction">Position Direction</Label>
+      <div className="flex items-center gap-1.5">
+        <Label htmlFor="position-direction">포지션 방향</Label>
+        <HelpTooltip
+          title={MONEY_HELP.positionDirection.title}
+          content={MONEY_HELP.positionDirection.content}
+          iconSize={13}
+        />
+      </div>
       <Select
         value={moneyManagement.positionDirection}
         onValueChange={(value) => setPositionDirection(value as 'long' | 'short' | 'both')}
@@ -24,9 +33,9 @@ export function PositionDirectionSelector() {
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="long">Long Only</SelectItem>
-          <SelectItem value="short">Short Only</SelectItem>
-          <SelectItem value="both">Both Directions</SelectItem>
+          <SelectItem value="long">롱만 (상승 베팅)</SelectItem>
+          <SelectItem value="short">숏만 (하락 베팅)</SelectItem>
+          <SelectItem value="both">양방향</SelectItem>
         </SelectContent>
       </Select>
     </div>

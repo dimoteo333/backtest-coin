@@ -8,7 +8,7 @@ export function Header() {
       <div className="container flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold tracking-tight">
-            Backtest<span className="text-primary/70">Coin</span>
+            백테스트<span className="text-primary/70">코인</span>
           </h1>
         </div>
 
@@ -29,7 +29,7 @@ export function Header() {
               <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
-            <span className="text-xs font-medium">Local Processing</span>
+            <span className="text-xs font-medium">로컬 처리</span>
           </Badge>
         </div>
       </div>

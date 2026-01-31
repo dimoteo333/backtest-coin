@@ -3,6 +3,8 @@
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
+import { STRATEGY_HELP } from '@/lib/help-content';
 import { useStrategyStore } from '@/stores';
 
 export function StopLossInput() {
@@ -11,9 +13,16 @@ export function StopLossInput() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label htmlFor="stop-loss-enabled" className="text-sm font-medium">
-          Stop Loss
-        </Label>
+        <div className="flex items-center gap-1.5">
+          <Label htmlFor="stop-loss-enabled" className="text-sm font-medium">
+            손절매
+          </Label>
+          <HelpTooltip
+            title={STRATEGY_HELP.stopLoss.title}
+            content={STRATEGY_HELP.stopLoss.content}
+            iconSize={13}
+          />
+        </div>
         <Switch
           id="stop-loss-enabled"
           checked={strategy.stopLoss.enabled}
@@ -24,7 +33,7 @@ export function StopLossInput() {
       {strategy.stopLoss.enabled && (
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Loss Limit</span>
+            <span className="text-muted-foreground">손실 한도</span>
             <span className="font-medium text-destructive">-{strategy.stopLoss.percentage}%</span>
           </div>
           <Slider

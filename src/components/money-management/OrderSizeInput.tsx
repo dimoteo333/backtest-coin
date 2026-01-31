@@ -10,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
+import { MONEY_HELP } from '@/lib/help-content';
 import { useMoneyManagementStore } from '@/stores';
 
 export function OrderSizeInput() {
@@ -34,14 +36,21 @@ export function OrderSizeInput() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">Order Size</Label>
+        <div className="flex items-center gap-1.5">
+          <Label className="text-sm font-medium">주문 크기</Label>
+          <HelpTooltip
+            title={MONEY_HELP.orderSize.title}
+            content={MONEY_HELP.orderSize.content}
+            iconSize={13}
+          />
+        </div>
         <Select value={moneyManagement.orderMode} onValueChange={handleModeChange}>
           <SelectTrigger className="h-7 w-32 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="percentOfBalance">% of Balance</SelectItem>
-            <SelectItem value="fixedAmount">Fixed Amount</SelectItem>
+            <SelectItem value="percentOfBalance">잔고 비율 (%)</SelectItem>
+            <SelectItem value="fixedAmount">고정 금액</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -49,7 +58,7 @@ export function OrderSizeInput() {
       {moneyManagement.orderMode === 'percentOfBalance' ? (
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Allocation</span>
+            <span className="text-muted-foreground">배분율</span>
             <span className="font-medium">{moneyManagement.orderSize.value}%</span>
           </div>
           <Slider
@@ -68,7 +77,7 @@ export function OrderSizeInput() {
       ) : (
         <div className="space-y-2">
           <Label htmlFor="fixed-amount" className="sr-only">
-            Fixed Amount
+            고정 금액
           </Label>
           <Input
             id="fixed-amount"
@@ -77,7 +86,7 @@ export function OrderSizeInput() {
             step={100}
             value={moneyManagement.orderSize.value}
             onChange={handleFixedChange}
-            placeholder="Enter amount in USDT"
+            placeholder="USDT 금액 입력"
           />
         </div>
       )}

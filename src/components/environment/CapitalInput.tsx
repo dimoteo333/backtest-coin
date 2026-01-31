@@ -9,6 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
+import { ENVIRONMENT_HELP } from '@/lib/help-content';
 import { useEnvironmentStore } from '@/stores';
 
 export function CapitalInput() {
@@ -23,7 +25,14 @@ export function CapitalInput() {
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="capital">Initial Capital</Label>
+      <div className="flex items-center gap-1.5">
+        <Label htmlFor="capital">초기 자본금</Label>
+        <HelpTooltip
+          title={ENVIRONMENT_HELP.initialCapital.title}
+          content={ENVIRONMENT_HELP.initialCapital.content}
+          iconSize={13}
+        />
+      </div>
       <div className="flex gap-2">
         <Input
           id="capital"
@@ -43,7 +52,7 @@ export function CapitalInput() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="USDT">USDT</SelectItem>
-            <SelectItem value="KRW">KRW</SelectItem>
+            <SelectItem value="KRW">원</SelectItem>
           </SelectContent>
         </Select>
       </div>

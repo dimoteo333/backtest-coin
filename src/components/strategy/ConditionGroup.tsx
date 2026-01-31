@@ -9,11 +9,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
+import { STRATEGY_HELP } from '@/lib/help-content';
 import { ConditionEditor } from './ConditionEditor';
 import type { Condition, ConditionGroup as ConditionGroupType } from '@/types/strategy';
 
 interface ConditionGroupProps {
   title: string;
+  helpKey: 'entryCondition' | 'exitCondition';
   group: ConditionGroupType;
   onOperatorChange: (operator: 'AND' | 'OR') => void;
   onAddCondition: (condition: Condition) => void;
@@ -23,6 +26,7 @@ interface ConditionGroupProps {
 
 export function ConditionGroup({
   title,
+  helpKey,
   group,
   onOperatorChange,
   onAddCondition,
@@ -42,20 +46,32 @@ export function ConditionGroup({
     onAddCondition(newCondition);
   };
 
+  const help = STRATEGY_HELP[helpKey];
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">{title}</Label>
+        <div className="flex items-center gap-1.5">
+          <Label className="text-sm font-medium">{title}</Label>
+          <HelpTooltip title={help.title} content={help.content} iconSize={13} />
+        </div>
         {group.conditions.length > 1 && (
-          <Select value={group.operator} onValueChange={(v) => onOperatorChange(v as 'AND' | 'OR')}>
-            <SelectTrigger className="h-7 w-20 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="AND">AND</SelectItem>
-              <SelectItem value="OR">OR</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1">
+            <Select value={group.operator} onValueChange={(v) => onOperatorChange(v as 'AND' | 'OR')}>
+              <SelectTrigger className="h-7 w-20 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="AND">그리고</SelectItem>
+                <SelectItem value="OR">또는</SelectItem>
+              </SelectContent>
+            </Select>
+            <HelpTooltip
+              title={STRATEGY_HELP.andOr.title}
+              content={STRATEGY_HELP.andOr.content}
+              iconSize={12}
+            />
+          </div>
         )}
       </div>
 
@@ -65,7 +81,7 @@ export function ConditionGroup({
             {index > 0 && (
               <div className="flex items-center justify-center py-1">
                 <span className="text-xs font-medium text-muted-foreground px-2 py-0.5 rounded bg-muted">
-                  {group.operator}
+                  {group.operator === 'AND' ? '그리고' : '또는'}
                 </span>
               </div>
             )}
@@ -99,7 +115,7 @@ export function ConditionGroup({
           <path d="M5 12h14" />
           <path d="M12 5v14" />
         </svg>
-        Add Condition
+        조건 추가
       </Button>
     </div>
   );

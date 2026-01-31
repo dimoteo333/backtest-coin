@@ -9,6 +9,8 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
+import { ENVIRONMENT_HELP } from '@/lib/help-content';
 import { useEnvironmentStore } from '@/stores';
 import { FEE_PRESETS } from '@/types/environment';
 
@@ -40,18 +42,31 @@ export function FeePresetSelector() {
     }
   };
 
+  // 거래소 이름 한국어 변환
+  const getKoreanPresetName = (name: string) => {
+    if (name === 'Custom') return '직접 설정';
+    return name;
+  };
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="fee-preset">Fee Preset</Label>
+        <div className="flex items-center gap-1.5">
+          <Label htmlFor="fee-preset">수수료 설정</Label>
+          <HelpTooltip
+            title={ENVIRONMENT_HELP.feePreset.title}
+            content={ENVIRONMENT_HELP.feePreset.content}
+            iconSize={13}
+          />
+        </div>
         <Select value={environment.feePreset.name} onValueChange={handlePresetChange}>
           <SelectTrigger id="fee-preset" className="w-full">
-            <SelectValue placeholder="Select fee preset" />
+            <SelectValue placeholder="수수료 설정 선택" />
           </SelectTrigger>
           <SelectContent>
             {FEE_PRESETS.map((preset) => (
               <SelectItem key={preset.name} value={preset.name}>
-                {preset.name} ({preset.makerFee}% / {preset.takerFee}%)
+                {getKoreanPresetName(preset.name)} ({preset.makerFee}% / {preset.takerFee}%)
               </SelectItem>
             ))}
           </SelectContent>
@@ -61,7 +76,7 @@ export function FeePresetSelector() {
       {environment.feePreset.name === 'Custom' && (
         <div className="flex gap-2">
           <div className="flex-1 space-y-2">
-            <Label htmlFor="maker-fee">Maker Fee (%)</Label>
+            <Label htmlFor="maker-fee">메이커 수수료 (%)</Label>
             <Input
               id="maker-fee"
               type="number"
@@ -72,7 +87,7 @@ export function FeePresetSelector() {
             />
           </div>
           <div className="flex-1 space-y-2">
-            <Label htmlFor="taker-fee">Taker Fee (%)</Label>
+            <Label htmlFor="taker-fee">테이커 수수료 (%)</Label>
             <Input
               id="taker-fee"
               type="number"
@@ -86,7 +101,14 @@ export function FeePresetSelector() {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="slippage">Slippage (%)</Label>
+        <div className="flex items-center gap-1.5">
+          <Label htmlFor="slippage">슬리피지 (%)</Label>
+          <HelpTooltip
+            title={ENVIRONMENT_HELP.slippage.title}
+            content={ENVIRONMENT_HELP.slippage.content}
+            iconSize={13}
+          />
+        </div>
         <Input
           id="slippage"
           type="number"

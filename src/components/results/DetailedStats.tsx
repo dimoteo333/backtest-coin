@@ -21,25 +21,25 @@ export function DetailedStatsPanel({ stats }: DetailedStatsProps) {
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Trade Statistics</CardTitle>
+          <CardTitle className="text-sm">거래 통계</CardTitle>
         </CardHeader>
         <CardContent className="space-y-0">
-          <StatRow label="Total Trades" value={stats.trades.totalTrades} />
-          <StatRow label="Profitable Trades" value={stats.trades.profitableTrades} />
-          <StatRow label="Losing Trades" value={stats.trades.losingTrades} />
-          <StatRow label="Max Consecutive Wins" value={stats.trades.consecutiveWins} />
-          <StatRow label="Max Consecutive Losses" value={stats.trades.consecutiveLosses} />
+          <StatRow label="총 거래 수" value={stats.trades.totalTrades} />
+          <StatRow label="수익 거래" value={stats.trades.profitableTrades} />
+          <StatRow label="손실 거래" value={stats.trades.losingTrades} />
+          <StatRow label="최대 연속 수익" value={`${stats.trades.consecutiveWins}회`} />
+          <StatRow label="최대 연속 손실" value={`${stats.trades.consecutiveLosses}회`} />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Profitability</CardTitle>
+          <CardTitle className="text-sm">수익성 분석</CardTitle>
         </CardHeader>
         <CardContent className="space-y-0">
-          <StatRow label="Avg Profit/Trade" value={stats.profitability.averageProfitPerTrade.formatted} />
+          <StatRow label="평균 거래 수익" value={stats.profitability.averageProfitPerTrade.formatted} />
           <StatRow
-            label="Profit Factor"
+            label="프로핏 팩터"
             value={
               stats.profitability.profitFactor === Infinity
                 ? '∞'
@@ -47,38 +47,38 @@ export function DetailedStatsPanel({ stats }: DetailedStatsProps) {
             }
           />
           <StatRow
-            label="Payoff Ratio"
+            label="손익 비율"
             value={
               stats.profitability.payoffRatio === Infinity
                 ? '∞'
                 : stats.profitability.payoffRatio.toFixed(2)
             }
           />
-          <StatRow label="Total Profit" value={`$${stats.growth.totalProfit.toFixed(2)}`} />
-          <StatRow label="Total Loss" value={`$${stats.growth.totalLoss.toFixed(2)}`} />
+          <StatRow label="총 수익" value={`$${stats.growth.totalProfit.toFixed(2)}`} />
+          <StatRow label="총 손실" value={`$${stats.growth.totalLoss.toFixed(2)}`} />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Growth Metrics</CardTitle>
+          <CardTitle className="text-sm">성장 지표</CardTitle>
         </CardHeader>
         <CardContent className="space-y-0">
-          <StatRow label="CAGR" value={stats.growth.cagrFormatted} />
-          <StatRow label="Test Period" value={`${stats.period.daysCount} days`} />
-          <StatRow label="Start Date" value={stats.period.startDate} />
-          <StatRow label="End Date" value={stats.period.endDate} />
+          <StatRow label="연평균 성장률 (CAGR)" value={stats.growth.cagrFormatted} />
+          <StatRow label="테스트 기간" value={`${stats.period.daysCount}일`} />
+          <StatRow label="시작일" value={stats.period.startDate} />
+          <StatRow label="종료일" value={stats.period.endDate} />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Risk Metrics</CardTitle>
+          <CardTitle className="text-sm">위험 지표</CardTitle>
         </CardHeader>
         <CardContent className="space-y-0">
-          <StatRow label="Sharpe Ratio" value={stats.volatility.sharpeRatio.toFixed(2)} />
-          <StatRow label="Sortino Ratio" value={stats.volatility.sortinoRatio.toFixed(2)} />
-          <StatRow label="Volatility (Std Dev)" value={`${stats.volatility.stdDev.toFixed(2)}%`} />
+          <StatRow label="샤프 비율" value={stats.volatility.sharpeRatio.toFixed(2)} />
+          <StatRow label="소티노 비율" value={stats.volatility.sortinoRatio.toFixed(2)} />
+          <StatRow label="변동성 (표준편차)" value={`${stats.volatility.stdDev.toFixed(2)}%`} />
         </CardContent>
       </Card>
     </div>
