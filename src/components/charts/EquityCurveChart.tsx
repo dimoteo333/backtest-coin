@@ -47,6 +47,7 @@ export function EquityCurveChart({ data, initialCapital, height = 300 }: EquityC
         timeVisible: true,
         secondsVisible: false,
       },
+      autoSize: true, // Enable built-in responsive scaling
     });
 
     const lineSeries = chart.addSeries(LineSeries, {

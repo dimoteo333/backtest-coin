@@ -1,5 +1,6 @@
 import type { Candle } from '@/types';
 import type { Timeframe } from '@/types/environment';
+import { fetchAllUpbitKlines, getUpbitExchangeInfo } from './upbit';
 
 const BINANCE_API_BASE = 'https://api.binance.com/api/v3';
 const MAX_CANDLES_PER_REQUEST = 1000;
@@ -195,3 +196,7 @@ export async function getCurrentPrice(symbol: string): Promise<number> {
   const data = await response.json();
   return parseFloat(data.price);
 }
+
+// Export Upbit functions from this module for easier access in hooks
+export { fetchAllUpbitKlines, getUpbitExchangeInfo };
+

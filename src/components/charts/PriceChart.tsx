@@ -50,6 +50,7 @@ export function PriceChart({ candles, trades, height = 400 }: PriceChartProps) {
         timeVisible: true,
         secondsVisible: false,
       },
+      autoSize: true, // Enable built-in responsive scaling
     });
 
     const series = chart.addSeries(CandlestickSeries, {

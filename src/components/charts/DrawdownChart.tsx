@@ -46,6 +46,7 @@ export function DrawdownChart({ data, height = 200 }: DrawdownChartProps) {
         timeVisible: true,
         secondsVisible: false,
       },
+      autoSize: true, // Enable built-in responsive scaling
     });
 
     const series = chart.addSeries(LineSeries, {

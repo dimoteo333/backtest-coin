@@ -8,7 +8,7 @@ interface RightPanelProps {
 
 export function RightPanel({ children }: RightPanelProps) {
   return (
-    <main className="flex flex-1 flex-col overflow-y-auto p-4">
+    <main className="flex flex-1 flex-col overflow-y-auto p-4 bg-background">
       {children}
     </main>
   );

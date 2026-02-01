@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BacktestCoin - No-Code Crypto Backtesting",
-  description: "WebGPU-powered local backtesting for cryptocurrency trading strategies. No coding required, your strategy stays private.",
+  title: "BacktestCoin - 암호화폐 백테스팅 플랫폼",
+  description: "WebGPU 기반 고성능 암호화폐 백테스팅. 코드 없이 전략을 테스트하고, 브라우저에서 안전하게 실행하세요.",
 };
 
 export default function RootLayout({
@@ -23,11 +24,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ko">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

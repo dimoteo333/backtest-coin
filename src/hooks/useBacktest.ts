@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useCallback, useRef } from 'react';
 import { useDebounce } from './useDebounce';
 import { useEnvironmentStore, useStrategyStore, useMoneyManagementStore, useResultsStore } from '@/stores';
-import { CPUBacktestEngine, preCalculateIndicators, type BacktestConfig } from '@/services/backtest';
+import { CPUBacktestEngine, preCalculateIndicators, runQuickBacktest, type BacktestConfig } from '@/services/backtest';
 import { logger } from '@/lib/debug-logger';
 import type { Candle, PreCalculatedIndicators } from '@/types';
 
@@ -46,27 +46,29 @@ export function useBacktest() {
     logger.log('BACKTEST_HOOK', 'Starting backtest run', { level: 'info' });
     setLoading(true);
 
-    try {
-      const config: BacktestConfig = {
-        environment,
-        strategy: debouncedStrategy,
-        moneyManagement,
-      };
+    // Use setTimeout to allow UI to update loading state and prevent thread blocking
+    setTimeout(() => {
+      try {
+        const config: BacktestConfig = {
+          environment,
+          strategy: debouncedStrategy,
+          moneyManagement,
+        };
 
-      logger.log('BACKTEST_HOOK', 'Creating backtest engine', { level: 'debug', data: {
-        candles: candles.length,
-        strategy: debouncedStrategy,
-      }});
+        logger.log('BACKTEST_HOOK', 'Creating backtest engine', { level: 'debug', data: {
+          candles: candles.length,
+          strategy: debouncedStrategy,
+        }});
 
-      const engine = new CPUBacktestEngine(candles, config);
-      const result = engine.run();
+        const result = runQuickBacktest(candles, preCalculatedIndicators!, config);
 
-      logger.log('BACKTEST_HOOK', 'Backtest completed successfully', { level: 'success' });
-      setResult(result);
-    } catch (err) {
-      logger.error('BACKTEST_HOOK', 'Backtest failed', err instanceof Error ? err : undefined);
-      setError(err instanceof Error ? err.message : 'Backtest failed');
-    }
+        logger.log('BACKTEST_HOOK', 'Backtest completed successfully', { level: 'success', data: result.summary as unknown as Record<string, unknown> });
+        setResult(result);
+      } catch (err) {
+        logger.error('BACKTEST_HOOK', 'Backtest failed', err instanceof Error ? err : undefined);
+        setError(err instanceof Error ? err.message : 'Backtest failed');
+      }
+    }, 100);
   }, [candles, environment, debouncedStrategy, moneyManagement, preCalculatedIndicators, setResult, setLoading, setError]);
 
   // Auto-run backtest when debounced inputs change

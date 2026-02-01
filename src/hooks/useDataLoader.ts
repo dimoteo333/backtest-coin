@@ -3,12 +3,13 @@
 import { useState, useCallback } from 'react';
 import { useResultsStore } from '@/stores';
 import { fetchAllKlines } from '@/services/api/binance';
+import { fetchAllUpbitKlines } from '@/services/api/upbit';
 import { cacheCandles, getCachedCandles, getCacheMetadata } from '@/services/cache/indexedDB';
 import { generateMockCandles, getTimeframeMs } from '@/services/mockData';
 import { logger } from '@/lib/debug-logger';
 import type { Timeframe } from '@/types/environment';
 
-export type DataSource = 'binance' | 'mock';
+export type DataSource = 'binance' | 'upbit' | 'mock';
 
 interface UseDataLoaderOptions {
   source?: DataSource;
@@ -54,7 +55,9 @@ export function useDataLoader({ source = 'mock' }: UseDataLoaderOptions = {}) {
             lastCandle: mockCandles[mockCandles.length - 1]?.date,
           });
         } else {
-          // Try to get cached data first
+          // Try to get cached data first (shared cache for same symbol)
+          // Note: Symbol format might differ per exchange (BTC/USDT vs KRW-BTC), 
+          // so cache key handles separation naturally.
           const startTime = new Date(startDate).getTime();
           const endTime = new Date(endDate).getTime() + 24 * 60 * 60 * 1000;
 
@@ -82,17 +85,30 @@ export function useDataLoader({ source = 'mock' }: UseDataLoaderOptions = {}) {
             }
           }
 
-          // Fetch from Binance
-          logger.log('DATA_LOADER', 'Cache miss - fetching from Binance API', { level: 'info' });
-          const candles = await fetchAllKlines(
-            symbol,
-            timeframe,
-            startDate,
-            endDate,
-            setProgress
-          );
+          // Fetch from API
+          logger.log('DATA_LOADER', `Cache miss - fetching from ${source.toUpperCase()} API`, { level: 'info' });
+          
+          let candles;
+          if (source === 'upbit') {
+             candles = await fetchAllUpbitKlines(
+              symbol,
+              timeframe,
+              startDate,
+              endDate,
+              setProgress
+            );
+          } else {
+             // Default to Binance
+             candles = await fetchAllKlines(
+              symbol,
+              timeframe,
+              startDate,
+              endDate,
+              setProgress
+            );
+          }
 
-          logger.dataReceived('BINANCE', candles.length, {
+          logger.dataReceived(source.toUpperCase(), candles.length, {
             firstCandle: new Date(candles[0]?.time).toISOString(),
             lastCandle: new Date(candles[candles.length - 1]?.time).toISOString(),
             priceRange: {
