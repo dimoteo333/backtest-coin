@@ -5,6 +5,7 @@ import { useResultsStore } from '@/stores';
 import { fetchAllKlines } from '@/services/api/binance';
 import { cacheCandles, getCachedCandles, getCacheMetadata } from '@/services/cache/indexedDB';
 import { generateMockCandles, getTimeframeMs } from '@/services/mockData';
+import { logger } from '@/lib/debug-logger';
 import type { Timeframe } from '@/types/environment';
 
 export type DataSource = 'binance' | 'mock';
@@ -30,8 +31,14 @@ export function useDataLoader({ source = 'mock' }: UseDataLoaderOptions = {}) {
       setProgress(0);
 
       try {
+        logger.log('DATA_LOADER', `Starting data load: ${source.toUpperCase()} - ${symbol} ${timeframe}`, {
+          level: 'info',
+          data: { symbol, timeframe, startDate, endDate },
+        });
+
         if (source === 'mock') {
           // Use mock data
+          logger.log('DATA_LOADER', 'Generating mock data...', { level: 'debug' });
           await new Promise((resolve) => setTimeout(resolve, 300));
           const mockCandles = generateMockCandles(
             symbol,
@@ -41,6 +48,11 @@ export function useDataLoader({ source = 'mock' }: UseDataLoaderOptions = {}) {
           );
           setCandles(mockCandles);
           setProgress(100);
+
+          logger.dataReceived('MOCK', mockCandles.length, {
+            firstCandle: mockCandles[0]?.date,
+            lastCandle: mockCandles[mockCandles.length - 1]?.date,
+          });
         } else {
           // Try to get cached data first
           const startTime = new Date(startDate).getTime();
@@ -55,16 +67,23 @@ export function useDataLoader({ source = 'mock' }: UseDataLoaderOptions = {}) {
             cacheMetadata.endTime >= endTime
           ) {
             // Use cached data
+            logger.log('DATA_LOADER', 'Cache hit - loading from IndexedDB', { level: 'debug' });
             const cachedCandles = await getCachedCandles(symbol, timeframe, startTime, endTime);
             if (cachedCandles.length > 0) {
               setCandles(cachedCandles);
               setProgress(100);
               setCandlesLoading(false);
+
+              logger.dataReceived('CACHE', cachedCandles.length, {
+                firstCandle: new Date(cachedCandles[0]?.time).toISOString(),
+                lastCandle: new Date(cachedCandles[cachedCandles.length - 1]?.time).toISOString(),
+              });
               return;
             }
           }
 
           // Fetch from Binance
+          logger.log('DATA_LOADER', 'Cache miss - fetching from Binance API', { level: 'info' });
           const candles = await fetchAllKlines(
             symbol,
             timeframe,
@@ -73,7 +92,17 @@ export function useDataLoader({ source = 'mock' }: UseDataLoaderOptions = {}) {
             setProgress
           );
 
+          logger.dataReceived('BINANCE', candles.length, {
+            firstCandle: new Date(candles[0]?.time).toISOString(),
+            lastCandle: new Date(candles[candles.length - 1]?.time).toISOString(),
+            priceRange: {
+              high: Math.max(...candles.map(c => c.high)),
+              low: Math.min(...candles.map(c => c.low)),
+            },
+          });
+
           // Cache the data
+          logger.log('DATA_LOADER', 'Caching data to IndexedDB', { level: 'debug' });
           await cacheCandles(symbol, timeframe, candles);
 
           setCandles(candles);
@@ -82,7 +111,10 @@ export function useDataLoader({ source = 'mock' }: UseDataLoaderOptions = {}) {
         const message = err instanceof Error ? err.message : 'Failed to load data';
         setError(message);
 
+        logger.error('DATA_LOADER', `Failed to load data: ${message}`, err instanceof Error ? err : undefined);
+
         // Fall back to mock data on error
+        logger.log('DATA_LOADER', 'Falling back to mock data', { level: 'warning' });
         const mockCandles = generateMockCandles(
           symbol,
           startDate,
@@ -90,8 +122,11 @@ export function useDataLoader({ source = 'mock' }: UseDataLoaderOptions = {}) {
           getTimeframeMs(timeframe)
         );
         setCandles(mockCandles);
+
+        logger.dataReceived('MOCK (Fallback)', mockCandles.length);
       } finally {
         setCandlesLoading(false);
+        logger.log('DATA_LOADER', 'Data loading complete', { level: 'success' });
       }
     },
     [source, setCandles, setCandlesLoading]

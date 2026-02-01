@@ -16,6 +16,7 @@ import {
   calculateVisualizationData,
   EquityPoint,
 } from './metrics';
+import { logger } from '@/lib/debug-logger';
 
 export interface BacktestConfig {
   environment: EnvironmentSetup;
@@ -28,11 +29,15 @@ export interface BacktestConfig {
  * This is done once and cached for fast recalculation
  */
 export function preCalculateIndicators(candles: Candle[]): PreCalculatedIndicators {
+  logger.group('INDICATORS', `Pre-calculating indicators for ${candles.length} candles`, true);
+  const startTime = performance.now();
+
   // Common RSI periods
   const rsiPeriods = [7, 14, 21, 28];
   const rsi: Record<number, number[]> = {};
   for (const period of rsiPeriods) {
     rsi[period] = calculateRSI(candles, period);
+    logger.log('INDICATORS', `RSI(${period}) calculated`, { level: 'debug' });
   }
 
   // Common SMA periods
@@ -40,6 +45,7 @@ export function preCalculateIndicators(candles: Candle[]): PreCalculatedIndicato
   const sma: Record<number, number[]> = {};
   for (const period of smaPeriods) {
     sma[period] = calculateSMA(candles, period);
+    logger.log('INDICATORS', `SMA(${period}) calculated`, { level: 'debug' });
   }
 
   // Common EMA periods
@@ -47,6 +53,7 @@ export function preCalculateIndicators(candles: Candle[]): PreCalculatedIndicato
   const ema: Record<number, number[]> = {};
   for (const period of emaPeriods) {
     ema[period] = calculateEMA(candles, period);
+    logger.log('INDICATORS', `EMA(${period}) calculated`, { level: 'debug' });
   }
 
   // Bollinger Bands
@@ -54,10 +61,16 @@ export function preCalculateIndicators(candles: Candle[]): PreCalculatedIndicato
   const bb: Record<number, Array<{ upper: number; middle: number; lower: number }>> = {};
   for (const period of bbPeriods) {
     bb[period] = calculateBollingerBands(candles, period);
+    logger.log('INDICATORS', `BB(${period}) calculated`, { level: 'debug' });
   }
 
   // MACD
   const macd = calculateMACD(candles);
+  logger.log('INDICATORS', 'MACD calculated', { level: 'debug' });
+
+  const duration = performance.now() - startTime;
+  logger.log('INDICATORS', `All indicators calculated in ${duration.toFixed(2)}ms`, { level: 'success' });
+  logger.groupEnd();
 
   return { rsi, sma, ema, bb, macd };
 }
@@ -134,7 +147,8 @@ function evaluateCondition(
   condition: Condition,
   indicators: PreCalculatedIndicators,
   candles: Candle[],
-  index: number
+  index: number,
+  logDetails: boolean = false
 ): boolean {
   const indicatorValue = getIndicatorValue(
     indicators,
@@ -145,6 +159,9 @@ function evaluateCondition(
   );
 
   if (isNaN(indicatorValue)) {
+    if (logDetails) {
+      logger.log('CONDITION', `${condition.description}: SKIP (indicator value is NaN)`, { level: 'debug' });
+    }
     return false;
   }
 
@@ -162,23 +179,46 @@ function evaluateCondition(
   }
 
   if (isNaN(compareValue)) {
+    if (logDetails) {
+      logger.log('CONDITION', `${condition.description}: SKIP (compare value is NaN)`, { level: 'debug' });
+    }
     return false;
   }
 
+  let result = false;
   switch (condition.comparison) {
     case '<':
-      return indicatorValue < compareValue;
+      result = indicatorValue < compareValue;
+      break;
     case '>':
-      return indicatorValue > compareValue;
+      result = indicatorValue > compareValue;
+      break;
     case '<=':
-      return indicatorValue <= compareValue;
+      result = indicatorValue <= compareValue;
+      break;
     case '>=':
-      return indicatorValue >= compareValue;
+      result = indicatorValue >= compareValue;
+      break;
     case '==':
-      return Math.abs(indicatorValue - compareValue) < 0.0001;
+      result = Math.abs(indicatorValue - compareValue) < 0.0001;
+      break;
     default:
-      return false;
+      result = false;
   }
+
+  if (logDetails) {
+    const indicatorName = condition.indicator || 'PRICE';
+    const period = condition.indicatorPeriod || 0;
+    const fullName = period > 0 ? `${indicatorName}(${period})` : indicatorName;
+
+    logger.log(
+      'CONDITION',
+      `${condition.description}: ${result ? '✓' : '✗'} (${fullName}=${indicatorValue.toFixed(4)} ${condition.comparison} ${compareValue.toFixed(4)})`,
+      { level: result ? 'success' : 'debug' }
+    );
+  }
+
+  return result;
 }
 
 /**
@@ -188,17 +228,33 @@ function evaluateConditionGroup(
   group: ConditionGroup,
   indicators: PreCalculatedIndicators,
   candles: Candle[],
-  index: number
+  index: number,
+  type: 'entry' | 'exit' = 'entry',
+  logDetails: boolean = false
 ): boolean {
   if (group.conditions.length === 0) {
     return false;
   }
 
-  if (group.operator === 'AND') {
-    return group.conditions.every((c) => evaluateCondition(c, indicators, candles, index));
-  } else {
-    return group.conditions.some((c) => evaluateCondition(c, indicators, candles, index));
+  if (logDetails) {
+    logger.group('CONDITION', `Evaluating ${type} conditions (${group.operator})`, false);
   }
+
+  let result: boolean;
+  if (group.operator === 'AND') {
+    result = group.conditions.every((c) => evaluateCondition(c, indicators, candles, index, logDetails));
+  } else {
+    result = group.conditions.some((c) => evaluateCondition(c, indicators, candles, index, logDetails));
+  }
+
+  if (logDetails) {
+    logger.log('CONDITION', `${type.toUpperCase()} result: ${result ? '✓ TRUE' : '✗ FALSE'}`, {
+      level: result ? 'success' : 'debug',
+    });
+    logger.groupEnd();
+  }
+
+  return result;
 }
 
 /**
@@ -245,6 +301,14 @@ export class CPUBacktestEngine {
   run(): BacktestResult {
     const startTime = performance.now();
 
+    logger.log('BACKTEST', '═══════════════════════════════════════', { level: 'info' });
+    logger.log('BACKTEST', 'Starting backtest execution', { level: 'info', data: {
+      candles: this.candles.length,
+      symbol: this.config.environment.symbol,
+      timeframe: this.config.environment.timeframe,
+      initialCapital: this.config.environment.initialCapital,
+    }});
+
     const { environment, strategy, moneyManagement } = this.config;
     const { initialCapital, feePreset, slippage } = environment;
 
@@ -255,9 +319,20 @@ export class CPUBacktestEngine {
 
     const warmupPeriod = calculateWarmupPeriod(strategy);
 
+    logger.log('BACKTEST', `Warmup period: ${warmupPeriod} candles`, { level: 'debug' });
+    logger.log('BACKTEST', `Starting main loop from candle ${warmupPeriod} to ${this.candles.length}`, { level: 'info' });
+
     // Main candle loop
     for (let i = warmupPeriod; i < this.candles.length; i++) {
       const candle = this.candles[i];
+      const shouldLog = i % 100 === 0; // Log every 100th candle to avoid spam
+
+      if (shouldLog) {
+        logger.log('BACKTEST', `Processing candle ${i}/${this.candles.length} (${new Date(candle.time).toISOString()})`, {
+          level: 'debug',
+          data: { price: candle.close, volume: candle.volume }
+        });
+      }
 
       // Check existing position for stop loss / take profit / exit condition
       if (position) {
@@ -273,16 +348,18 @@ export class CPUBacktestEngine {
         if (strategy.stopLoss.enabled && pnlPercent <= -strategy.stopLoss.percentage) {
           shouldClose = true;
           exitReason = 'stop_loss';
+          logger.log('TRADE', `Stop loss triggered at ${candle.close} (PnL: ${pnlPercent.toFixed(2)}%)`, { level: 'warning' });
         }
 
         // Check take profit
         if (strategy.takeProfit.enabled && pnlPercent >= strategy.takeProfit.percentage) {
           shouldClose = true;
           exitReason = 'take_profit';
+          logger.log('TRADE', `Take profit triggered at ${candle.close} (PnL: ${pnlPercent.toFixed(2)}%)`, { level: 'success' });
         }
 
         // Check exit condition
-        if (!shouldClose && evaluateConditionGroup(strategy.exitCondition, this.indicators, this.candles, i)) {
+        if (!shouldClose && evaluateConditionGroup(strategy.exitCondition, this.indicators, this.candles, i, 'exit', true)) {
           shouldClose = true;
           exitReason = 'exit_condition';
         }
@@ -317,12 +394,13 @@ export class CPUBacktestEngine {
           };
 
           trades.push(trade);
+          logger.tradeAction('EXIT', candle.close, exitReason, netPnL);
           position = null;
         }
       }
 
       // Check entry condition (only if no position)
-      if (!position && evaluateConditionGroup(strategy.entryCondition, this.indicators, this.candles, i)) {
+      if (!position && evaluateConditionGroup(strategy.entryCondition, this.indicators, this.candles, i, 'entry', true)) {
         // Calculate order size
         let orderAmount: number;
         if (moneyManagement.orderMode === 'percentOfBalance') {
@@ -348,6 +426,9 @@ export class CPUBacktestEngine {
             entryFee,
             direction: moneyManagement.positionDirection === 'short' ? 'short' : 'long',
           };
+
+          logger.tradeAction('ENTRY', candle.close, 'entry_condition', undefined);
+          logger.log('TRADE', `Position size: ${quantity.toFixed(8)} (Cost: ${orderAmount.toFixed(2)} USDT, Fee: ${entryFee.toFixed(2)})`, { level: 'debug' });
 
           cash -= orderAmount;
         }
@@ -423,6 +504,17 @@ export class CPUBacktestEngine {
     );
 
     const visualization = calculateVisualizationData(initialCapital, equityCurve, trades);
+
+    logger.log('BACKTEST', '═══════════════════════════════════════', { level: 'info' });
+    logger.log('BACKTEST', `Backtest completed in ${executionTimeMs.toFixed(2)}ms`, {
+      level: 'success',
+      data: {
+        totalTrades: trades.length,
+        finalEquity: summary.finalEquity.value,
+        totalReturn: summary.totalReturn.formatted,
+        winRate: summary.winRate.formatted,
+      }
+    });
 
     return {
       summary,

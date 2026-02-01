@@ -5,6 +5,7 @@ import { DEFAULT_STRATEGY } from '@/types/strategy';
 
 interface StrategyState {
   strategy: StrategyLogic;
+  setStrategy: (strategy: StrategyLogic) => void;
   setEntryCondition: (condition: ConditionGroup) => void;
   setExitCondition: (condition: ConditionGroup) => void;
   addEntryCondition: (condition: Condition) => void;
@@ -24,6 +25,11 @@ export const useStrategyStore = create<StrategyState>()(
   persist(
     (set) => ({
       strategy: DEFAULT_STRATEGY,
+
+      setStrategy: (strategy) =>
+        set({
+          strategy,
+        }),
 
       setEntryCondition: (condition) =>
         set((state) => ({

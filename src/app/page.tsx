@@ -8,6 +8,8 @@ import { MoneyManagementForm } from '@/components/money-management';
 import { ResultsDashboard } from '@/components/results';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -17,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { useBacktest, useDataLoader, type DataSource } from '@/hooks';
 import { useEnvironmentStore, useResultsStore } from '@/stores';
+import { logger } from '@/lib/debug-logger';
 
 function BacktestButton() {
   const { runBacktest, isReady } = useBacktest();
@@ -64,7 +67,23 @@ function DataLoader() {
   const environment = useEnvironmentStore((state) => state.environment);
   const { candles, candlesLoading } = useResultsStore();
   const [dataSource, setDataSource] = useState<DataSource>('mock');
+  const [debugMode, setDebugMode] = useState(false);
   const { loadData, progress, error } = useDataLoader({ source: dataSource });
+
+  // Enable/disable debug logging
+  useEffect(() => {
+    logger.setEnabled(debugMode);
+    if (debugMode) {
+      console.log('%c🔍 Debug Mode Enabled', 'color: #8b5cf6; font-weight: bold; font-size: 14px;');
+      console.log('%cYou will now see detailed logs for:', 'color: #6b7280;');
+      console.log('%c  - Data loading (Binance/Mock)', 'color: #3b82f6;');
+      console.log('%c  - Indicator calculations', 'color: #10b981;');
+      console.log('%c  - Strategy evaluations', 'color: #f59e0b;');
+      console.log('%c  - Trade entries/exits', 'color: #ef4444;');
+    } else {
+      console.log('%c🔕 Debug Mode Disabled', 'color: #6b7280;');
+    }
+  }, [debugMode]);
 
   const handleLoad = () => {
     loadData(
@@ -122,6 +141,21 @@ function DataLoader() {
           </Button>
         </div>
       </div>
+
+      {/* Debug Mode Toggle */}
+      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 text-sm border border-dashed">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="debug-mode" className="text-xs font-medium cursor-pointer">
+            🔍 디버그 모드 (콘솔 로그)
+          </Label>
+        </div>
+        <Switch
+          id="debug-mode"
+          checked={debugMode}
+          onCheckedChange={setDebugMode}
+        />
+      </div>
+
       {error && (
         <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
           <Badge variant="outline" className="text-xs">

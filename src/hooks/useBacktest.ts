@@ -4,6 +4,7 @@ import { useEffect, useMemo, useCallback, useRef } from 'react';
 import { useDebounce } from './useDebounce';
 import { useEnvironmentStore, useStrategyStore, useMoneyManagementStore, useResultsStore } from '@/stores';
 import { CPUBacktestEngine, preCalculateIndicators, type BacktestConfig } from '@/services/backtest';
+import { logger } from '@/lib/debug-logger';
 import type { Candle, PreCalculatedIndicators } from '@/types';
 
 /**
@@ -31,15 +32,18 @@ export function useBacktest() {
   // Run backtest when inputs change
   const runBacktest = useCallback(() => {
     if (candles.length === 0) {
+      logger.error('BACKTEST_HOOK', 'No candle data available');
       setError('No candle data available. Please load data first.');
       return;
     }
 
     if (!preCalculatedIndicators) {
+      logger.error('BACKTEST_HOOK', 'Indicators not calculated yet');
       setError('Indicators not calculated yet.');
       return;
     }
 
+    logger.log('BACKTEST_HOOK', 'Starting backtest run', { level: 'info' });
     setLoading(true);
 
     try {
@@ -49,11 +53,18 @@ export function useBacktest() {
         moneyManagement,
       };
 
+      logger.log('BACKTEST_HOOK', 'Creating backtest engine', { level: 'debug', data: {
+        candles: candles.length,
+        strategy: debouncedStrategy,
+      }});
+
       const engine = new CPUBacktestEngine(candles, config);
       const result = engine.run();
 
+      logger.log('BACKTEST_HOOK', 'Backtest completed successfully', { level: 'success' });
       setResult(result);
     } catch (err) {
+      logger.error('BACKTEST_HOOK', 'Backtest failed', err instanceof Error ? err : undefined);
       setError(err instanceof Error ? err.message : 'Backtest failed');
     }
   }, [candles, environment, debouncedStrategy, moneyManagement, preCalculatedIndicators, setResult, setLoading, setError]);
